@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: video-translator-oauth
+    env: python
+    buildCommand: pip install -r requirements_google_oauth.txt
+    startCommand: python server_google_oauth_example.py
+    envVars:
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        fromService:
+          type: web
+          name: video-translator-oauth
+          property: port
+
