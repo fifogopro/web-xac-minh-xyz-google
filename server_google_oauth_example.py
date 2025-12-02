@@ -701,27 +701,36 @@ cleanup_thread.start()
 # ============================================
 
 if __name__ == '__main__':
+    """
+    Chỉ chạy development server khi chạy local
+    Production nên dùng: gunicorn server_google_oauth_example:app
+    """
     print("=" * 50)
     print("Google OAuth Server cho Video Translator")
     print("=" * 50)
-    print(f"Client ID: {GOOGLE_CLIENT_ID[:20]}...")
-    print(f"Redirect URI: {GOOGLE_REDIRECT_URI}")
+    print(f"Client ID: {GOOGLE_CLIENT_ID[:20] if GOOGLE_CLIENT_ID else 'N/A'}...")
+    print(f"Redirect URI: {GOOGLE_REDIRECT_URI if GOOGLE_REDIRECT_URI else 'N/A'}")
     print("=" * 50)
     print("\nEndpoints:")
     print("  GET  /api/google-auth")
     print("  GET  /api/google-callback")
     print("  POST /api/verify-google-auth")
     print("  GET  /ping")
+    print("  GET  /api/check-config")
     print("\n⚠️  LƯU Ý:")
-    print("1. Cập nhật GOOGLE_CLIENT_ID và GOOGLE_CLIENT_SECRET")
-    print("2. Cập nhật GOOGLE_REDIRECT_URI trong Google Cloud Console")
-    print("3. Đảm bảo redirect URI khớp với cấu hình")
+    print("1. Đây là DEVELOPMENT SERVER - chỉ dùng để test local")
+    print("2. Production nên dùng: gunicorn server_google_oauth_example:app")
+    print("3. Cập nhật GOOGLE_CLIENT_ID và GOOGLE_CLIENT_SECRET trong env vars")
+    print("4. Cập nhật GOOGLE_REDIRECT_URI trong Google Cloud Console")
     print("=" * 50)
     
     # Đọc PORT từ environment (Render tự động set PORT)
     PORT = int(os.getenv('PORT', 3000))
     # Tắt debug mode trong production
     DEBUG = os.getenv('FLASK_ENV', 'development') == 'development'
+    
+    print(f"\n🚀 Starting development server on port {PORT}...")
+    print("⚠️  WARNING: This is a development server. Use Gunicorn for production!")
     
     app.run(host='0.0.0.0', port=PORT, debug=DEBUG)
 
