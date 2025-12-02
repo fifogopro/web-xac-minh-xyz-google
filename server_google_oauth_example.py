@@ -25,16 +25,27 @@ app.secret_key = secrets.token_hex(32)  # Secret key cho session
 # 3. Copy và paste vào dưới đây
 # ============================================
 
-# Lấy từ file JSON credentials (thay thế bằng thông tin của bạn)
-# Ưu tiên đọc từ environment variables (cho production), nếu không có thì dùng giá trị mặc định (cho local)
-GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', "651326353742-cknrd5ugglufif2iehn4pm84q3mpjap8.apps.googleusercontent.com")
-GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', "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")
+# ============================================
+# ⚠️ BẢO MẬT: KHÔNG BAO GIỜ HARDCODE SECRETS TRONG CODE!
+# ============================================
+# Tất cả thông tin nhạy cảm PHẢI được lấy từ environment variables
+# Để set environment variables:
+# - Local: Tạo file .env hoặc export trong terminal
+# - Production (Render): Set trong dashboard Render
+# ============================================
 
-# Redirect URI - Đổi thành URL server của bạn khi deploy
-# Cho test local:
-# GOOGLE_REDIRECT_URI = "http://localhost:3000/api/google-callback"
-# Cho production (Render):
-GOOGLE_REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI', "https://web-xac-minh-google.onrender.com/api/google-callback")
+# Lấy từ environment variables (BẮT BUỘC)
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
+GOOGLE_REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI')
+
+# Kiểm tra các biến bắt buộc
+if not GOOGLE_CLIENT_ID:
+    raise ValueError("❌ GOOGLE_CLIENT_ID chưa được set trong environment variables!")
+if not GOOGLE_CLIENT_SECRET:
+    raise ValueError("❌ GOOGLE_CLIENT_SECRET chưa được set trong environment variables!")
+if not GOOGLE_REDIRECT_URI:
+    raise ValueError("❌ GOOGLE_REDIRECT_URI chưa được set trong environment variables!")
 
 # ============================================
 # LƯU TRỮ TẠM THỜI (Nên dùng Redis trong production)
