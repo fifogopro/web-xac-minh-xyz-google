@@ -78,106 +78,143 @@ verification_store = {}  # {code: {email, name, access_token, expires_at}}
 
 @app.route('/', methods=['GET'])
 def index():
-    """Trang chủ - Hiển thị thông tin server"""
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Google OAuth Server - Video Translator</title>
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                max-width: 800px;
-                margin: 50px auto;
-                padding: 20px;
-                background: #f5f5f5;
-            }}
-            .container {{
-                background: white;
-                padding: 30px;
-                border-radius: 10px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            }}
-            h1 {{
-                color: #0066cc;
-            }}
-            .endpoint {{
-                background: #f0f0f0;
-                padding: 10px;
-                margin: 10px 0;
-                border-left: 4px solid #0066cc;
-            }}
-            .method {{
-                display: inline-block;
-                padding: 3px 8px;
-                background: #0066cc;
-                color: white;
-                border-radius: 3px;
-                font-weight: bold;
-                margin-right: 10px;
-            }}
-            .status {{
-                display: inline-block;
-                padding: 5px 10px;
-                background: #4CAF50;
-                color: white;
-                border-radius: 5px;
-                font-weight: bold;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🔐 Google OAuth Server</h1>
-            <p class="status">✅ Server đang hoạt động</p>
-            <hr>
-            <h2>📋 Các Endpoint có sẵn:</h2>
-            
-            <div class="endpoint">
-                <span class="method">GET</span>
-                <strong>/api/google-auth</strong>
-                <p>Bắt đầu Google OAuth flow - Mở trình duyệt để đăng nhập Google</p>
-                <a href="/api/google-auth" target="_blank">🔗 Test ngay</a>
+    """Trang chủ - API server, không hiển thị giao diện trong production"""
+    if IS_PRODUCTION:
+        # Production: Chỉ trả về JSON đơn giản, không lộ thông tin
+        return jsonify({
+            'service': 'Google OAuth Server',
+            'status': 'running',
+            'version': '1.0.0',
+            'endpoints': {
+                'auth': '/api/google-auth',
+                'callback': '/api/google-callback',
+                'verify': '/api/verify-google-auth',
+                'ping': '/ping',
+                'check_config': '/api/check-config'
+            },
+            'note': 'This is an API server. Use the endpoints to interact with the service.'
+        }), 200
+    else:
+        # Development: Hiển thị giao diện để dễ test
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Google OAuth Server - Video Translator (DEV)</title>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    max-width: 800px;
+                    margin: 50px auto;
+                    padding: 20px;
+                    background: #f5f5f5;
+                }}
+                .container {{
+                    background: white;
+                    padding: 30px;
+                    border-radius: 10px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                }}
+                h1 {{
+                    color: #0066cc;
+                }}
+                .endpoint {{
+                    background: #f0f0f0;
+                    padding: 10px;
+                    margin: 10px 0;
+                    border-left: 4px solid #0066cc;
+                }}
+                .method {{
+                    display: inline-block;
+                    padding: 3px 8px;
+                    background: #0066cc;
+                    color: white;
+                    border-radius: 3px;
+                    font-weight: bold;
+                    margin-right: 10px;
+                }}
+                .status {{
+                    display: inline-block;
+                    padding: 5px 10px;
+                    background: #4CAF50;
+                    color: white;
+                    border-radius: 5px;
+                    font-weight: bold;
+                }}
+                .dev-badge {{
+                    background: #ff9800;
+                    color: white;
+                    padding: 5px 10px;
+                    border-radius: 5px;
+                    font-size: 12px;
+                    margin-left: 10px;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🔐 Google OAuth Server <span class="dev-badge">DEV MODE</span></h1>
+                <p class="status">✅ Server đang hoạt động</p>
+                <hr>
+                <h2>📋 Các Endpoint có sẵn:</h2>
+                
+                <div class="endpoint">
+                    <span class="method">GET</span>
+                    <strong>/api/google-auth</strong>
+                    <p>Bắt đầu Google OAuth flow - Mở trình duyệt để đăng nhập Google</p>
+                    <a href="/api/google-auth" target="_blank">🔗 Test ngay</a>
+                </div>
+                
+                <div class="endpoint">
+                    <span class="method">GET</span>
+                    <strong>/api/google-callback</strong>
+                    <p>Callback từ Google OAuth (tự động được gọi bởi Google)</p>
+                </div>
+                
+                <div class="endpoint">
+                    <span class="method">POST</span>
+                    <strong>/api/verify-google-auth</strong>
+                    <p>Xác minh mã 6 chữ số và đăng ký/đăng nhập</p>
+                    <p><small>Body: {{"auth_code": "123456", "machine_id": "..."}}</small></p>
+                </div>
+                
+                <div class="endpoint">
+                    <span class="method">GET</span>
+                    <strong>/ping</strong>
+                    <p>Kiểm tra server có hoạt động không</p>
+                    <a href="/ping" target="_blank">🔗 Test ngay</a>
+                </div>
+                
+                <div class="endpoint">
+                    <span class="method">GET</span>
+                    <strong>/api/check-config</strong>
+                    <p>Kiểm tra cấu hình environment variables</p>
+                    <a href="/api/check-config" target="_blank">🔗 Test ngay</a>
+                </div>
+                
+                <hr>
+                <h2>⚙️ Cấu hình:</h2>
+                <p><strong>Client ID:</strong> {GOOGLE_CLIENT_ID[:30] if GOOGLE_CLIENT_ID else 'N/A'}...</p>
+                <p><strong>Redirect URI:</strong> {GOOGLE_REDIRECT_URI if GOOGLE_REDIRECT_URI else 'N/A'}</p>
+                
+                <hr>
+                <h2>🧪 Hướng dẫn Test:</h2>
+                <ol>
+                    <li>Nhấn vào link "Test ngay" ở endpoint <code>/api/google-auth</code></li>
+                    <li>Đăng nhập Google và cho phép ứng dụng</li>
+                    <li>Bạn sẽ thấy mã xác minh 6 chữ số</li>
+                    <li>Nhập mã đó vào ứng dụng Video Translator</li>
+                </ol>
+                <hr>
+                <p style="color: #666; font-size: 12px;">
+                    ⚠️ <strong>Lưu ý:</strong> Giao diện này chỉ hiển thị trong môi trường development. 
+                    Trong production, endpoint này sẽ trả về JSON.
+                </p>
             </div>
-            
-            <div class="endpoint">
-                <span class="method">GET</span>
-                <strong>/api/google-callback</strong>
-                <p>Callback từ Google OAuth (tự động được gọi bởi Google)</p>
-            </div>
-            
-            <div class="endpoint">
-                <span class="method">POST</span>
-                <strong>/api/verify-google-auth</strong>
-                <p>Xác minh mã 6 chữ số và đăng ký/đăng nhập</p>
-                <p><small>Body: {{"auth_code": "123456", "machine_id": "..."}}</small></p>
-            </div>
-            
-            <div class="endpoint">
-                <span class="method">GET</span>
-                <strong>/ping</strong>
-                <p>Kiểm tra server có hoạt động không</p>
-                <a href="/ping" target="_blank">🔗 Test ngay</a>
-            </div>
-            
-            <hr>
-            <h2>⚙️ Cấu hình:</h2>
-            <p><strong>Client ID:</strong> {GOOGLE_CLIENT_ID[:30]}...</p>
-            <p><strong>Redirect URI:</strong> {GOOGLE_REDIRECT_URI}</p>
-            
-            <hr>
-            <h2>🧪 Hướng dẫn Test:</h2>
-            <ol>
-                <li>Nhấn vào link "Test ngay" ở endpoint <code>/api/google-auth</code></li>
-                <li>Đăng nhập Google và cho phép ứng dụng</li>
-                <li>Bạn sẽ thấy mã xác minh 6 chữ số</li>
-                <li>Nhập mã đó vào ứng dụng Video Translator</li>
-            </ol>
-        </div>
-    </body>
-    </html>
-    """
+        </body>
+        </html>
+        """
 
 @app.route('/api/google-auth', methods=['GET'])
 def google_auth():
