@@ -3,7 +3,7 @@ services:
     name: video-translator-oauth
     env: python
     buildCommand: pip install -r requirements_google_oauth.txt
-    startCommand: python server_google_oauth_example.py
+    startCommand: gunicorn --bind 0.0.0.0:$PORT server_google_oauth_example:app
     envVars:
       - key: GOOGLE_CLIENT_ID
         sync: false
