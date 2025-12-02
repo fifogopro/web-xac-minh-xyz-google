@@ -34,18 +34,38 @@ app.secret_key = secrets.token_hex(32)  # Secret key cho session
 # - Production (Render): Set trong dashboard Render
 # ============================================
 
-# Lấy từ environment variables (BẮT BUỘC)
+# Kiểm tra môi trường (production hay development)
+IS_PRODUCTION = os.getenv('FLASK_ENV') == 'production' or os.getenv('PORT') is not None
+
+# Lấy từ environment variables
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
 GOOGLE_REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI')
 
 # Kiểm tra các biến bắt buộc
 if not GOOGLE_CLIENT_ID:
-    raise ValueError("❌ GOOGLE_CLIENT_ID chưa được set trong environment variables!")
+    if IS_PRODUCTION:
+        raise ValueError("❌ GOOGLE_CLIENT_ID chưa được set trong environment variables! Vui lòng cấu hình trong Render Dashboard.")
+    else:
+        print("⚠️  CẢNH BÁO: GOOGLE_CLIENT_ID chưa được set. Vui lòng tạo file .env hoặc export biến môi trường.")
+        print("⚠️  Ví dụ: export GOOGLE_CLIENT_ID='your-client-id'")
+        raise ValueError("❌ GOOGLE_CLIENT_ID chưa được set trong environment variables!")
+
 if not GOOGLE_CLIENT_SECRET:
-    raise ValueError("❌ GOOGLE_CLIENT_SECRET chưa được set trong environment variables!")
+    if IS_PRODUCTION:
+        raise ValueError("❌ GOOGLE_CLIENT_SECRET chưa được set trong environment variables! Vui lòng cấu hình trong Render Dashboard.")
+    else:
+        print("⚠️  CẢNH BÁO: GOOGLE_CLIENT_SECRET chưa được set. Vui lòng tạo file .env hoặc export biến môi trường.")
+        print("⚠️  Ví dụ: export GOOGLE_CLIENT_SECRET='your-client-secret'")
+        raise ValueError("❌ GOOGLE_CLIENT_SECRET chưa được set trong environment variables!")
+
 if not GOOGLE_REDIRECT_URI:
-    raise ValueError("❌ GOOGLE_REDIRECT_URI chưa được set trong environment variables!")
+    if IS_PRODUCTION:
+        raise ValueError("❌ GOOGLE_REDIRECT_URI chưa được set trong environment variables! Vui lòng cấu hình trong Render Dashboard.")
+    else:
+        # Fallback cho local development
+        GOOGLE_REDIRECT_URI = "http://localhost:3000/api/google-callback"
+        print("⚠️  CẢNH BÁO: GOOGLE_REDIRECT_URI chưa được set, sử dụng giá trị mặc định cho local: http://localhost:3000/api/google-callback")
 
 # ============================================
 # LƯU TRỮ TẠM THỜI (Nên dùng Redis trong production)
@@ -599,6 +619,20 @@ def verify_google_auth():
 def ping():
     """API ping để đánh thức server"""
     return jsonify({'status': 'ok'}), 200
+
+@app.route('/api/check-config', methods=['GET'])
+def check_config():
+    """Kiểm tra cấu hình environment variables (chỉ hiển thị một phần để bảo mật)"""
+    config_status = {
+        'has_client_id': bool(GOOGLE_CLIENT_ID),
+        'has_client_secret': bool(GOOGLE_CLIENT_SECRET),
+        'has_redirect_uri': bool(GOOGLE_REDIRECT_URI),
+        'client_id_preview': GOOGLE_CLIENT_ID[:20] + '...' if GOOGLE_CLIENT_ID else None,
+        'redirect_uri': GOOGLE_REDIRECT_URI if GOOGLE_REDIRECT_URI else None,
+        'is_production': IS_PRODUCTION,
+        'status': 'ok' if (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET and GOOGLE_REDIRECT_URI) else 'missing_config'
+    }
+    return jsonify(config_status), 200
 
 # ============================================
 # DỌN DẸP MÃ HẾT HẠN
